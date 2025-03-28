@@ -32,7 +32,4 @@ def transcribe_audio(file_path: str) -> str:
     final_result = json.loads(recognizer.FinalResult())
     transcription += " " + final_result.get("text", "")
 
-    with open("res.txt", "w") as f:
-        f.write(transcription.strip())
-
     return transcription.strip()

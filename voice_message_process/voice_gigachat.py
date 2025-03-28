@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 import requests
 import json
-import uuid
+from Utils.GigachatUtils import get_token
 
 
 load_dotenv()
@@ -10,32 +10,6 @@ load_dotenv()
 TOKEN = os.getenv("GIGACHAT_API_KEY")
 
 COMMANDS = ["запись", "отмена записи", "цена", "маршрут"]
-
-def get_token(auth_token, scope='GIGACHAT_API_PERS'):
-    rq_uid = str(uuid.uuid4())
-
-    # API URL
-    url = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth"
-
-    # Заголовки
-    headers = {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Accept': 'application/json',
-        'RqUID': rq_uid,
-        'Authorization': f'Basic {auth_token}'
-    }
-
-    # Тело запроса
-    payload = {
-        'scope': scope
-    }
-
-    try:
-        response = requests.post(url, headers=headers, data=payload, verify=False)
-        return response
-    except requests.RequestException as e:
-        print(f"Ошибка: {str(e)}")
-        return -1
 
 def get_chat_completion(user_message):
     content = (
