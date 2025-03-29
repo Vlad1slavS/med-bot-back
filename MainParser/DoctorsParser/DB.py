@@ -1,3 +1,6 @@
+import os
+
+import dotenv
 import psycopg2
 import re
 from MainParser.DoctorsParser.doctors_list import parse_service_details
@@ -29,14 +32,11 @@ def insert_service(conn, specialization, academic_degree, type_visit, price):
         conn.commit()
 
 def store_services(services_data: list):
-    """Сохраняет данные в PostgreSQL."""
-    conn = psycopg2.connect(
-        dbname='postgres',
-        user='postgres',
-        password='',
-        host='localhost',
-        port='5432'
-    )
+    dotenv.load_dotenv()
+
+    DATABASE_URL = os.getenv("DATABASE_URL")
+
+    conn = psycopg2.connect(DATABASE_URL)
     create_table(conn)
 
     for res in services_data:

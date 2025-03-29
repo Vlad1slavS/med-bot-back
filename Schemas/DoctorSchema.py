@@ -9,4 +9,12 @@ class ConsultationOut(BaseModel):
     price: int
 
     class Config:
-        from_attributes = True  # Новый параметр в Pydantic v2
+        from_attributes = False  # Новый параметр в Pydantic v2
+
+class AnalysisOut(BaseModel):
+    id: int
+    full_text: str
+    price: int
+
+    class Config:
+        from_attributes = False  # Новый параметр в Pydantic v2

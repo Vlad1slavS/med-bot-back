@@ -1,3 +1,6 @@
+import os
+
+import dotenv
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
@@ -8,22 +11,18 @@ BASE_URL = "https://clinica.chitgma.ru/"
 TARGET_KEYWORDS = [
     "ультразвуковая диагностика",
     "функциональная диагностика",
-    "рентгенологический кабинет"
+    "рентгенологический кабинет",
+    "справки (абитуриентам)",
+    "справки (бассейн)"
 ]
 
-# Настройки подключения к PostgreSQL
-DB_CONFIG = {
-    'dbname': 'postgres',
-    'user': 'postgres',
-    'password': '',
-    'host': 'localhost',
-    'port': '5432'
-}
 
+dotenv.load_dotenv()
+
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 def create_table():
-    """Создает таблицу в базе данных"""
-    conn = psycopg2.connect(**DB_CONFIG)
+    conn = psycopg2.connect(DATABASE_URL)
     try:
         with conn.cursor() as cur:
             cur.execute("""
@@ -31,17 +30,20 @@ def create_table():
                     id SERIAL PRIMARY KEY,
                     type VARCHAR(100) NOT NULL,
                     full_text TEXT NOT NULL,
-                    price INTEGER NOT NULL
+                    price INTEGER NOT NULL,
+                    search_vector TSVECTOR GENERATED ALWAYS AS (to_tsvector('russian', full_text)) STORED
                 )
             """)
+            cur.execute("CREATE INDEX IF NOT EXISTS idx_analysis_search ON analysis USING GIN(search_vector);")
             conn.commit()
     finally:
         conn.close()
 
 
+
 def save_to_db(data: list):
     """Сохраняет данные в базу данных"""
-    conn = psycopg2.connect(**DB_CONFIG)
+    conn = psycopg2.connect(DATABASE_URL)
     try:
         with conn.cursor() as cur:
             for item in data:
@@ -55,6 +57,8 @@ def save_to_db(data: list):
         conn.rollback()
     finally:
         conn.close()
+
+
 
 
 def get_page(url: str) -> str:
@@ -79,9 +83,17 @@ def extract_navigation_links(html: str) -> list:
             continue
 
         abs_url = urljoin(BASE_URL, href)
+        link_text = name.lower()
         parent_li = a.find_parent("li")
         section = ""
 
+        if "справок" and "бассейн" in link_text:
+            links.append({"name": name, "url": abs_url, "section": "справки (бассейн)"})
+        if "справок" and "абитуриентам" in link_text:
+            links.append({"name": name, "url": abs_url, "section": "справки (абитуриентам)"})
+        else:
+            parent_li = a.find_parent("li")
+            section_span = None
         while parent_li:
             section_span = parent_li.find("span", class_="separator")
             if section_span:

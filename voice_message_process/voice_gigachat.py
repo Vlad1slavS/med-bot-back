@@ -2,12 +2,12 @@ import os
 from dotenv import load_dotenv
 import requests
 import json
-from Utils.GigachatUtils import get_token
+from Utils.GigachatUtils import get_auth_token
 
 
 load_dotenv()
 
-TOKEN = os.getenv("GIGACHAT_API_KEY")
+API_KEY = os.getenv("GIGACHAT_API_KEY")
 
 COMMANDS = ["запись", "отмена записи", "цена", "маршрут"]
 
@@ -26,9 +26,7 @@ def get_chat_completion(user_message):
     # URL API, к которому мы обращаемся
     url = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
 
-    response = get_token(TOKEN)
-    response_data = response.json()
-    auth_token = response_data['access_token']
+    auth_token = get_auth_token(API_KEY)
 
     # Подготовка данных запроса в формате JSON
     payload = json.dumps({

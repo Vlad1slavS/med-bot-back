@@ -1,4 +1,6 @@
 from sqlalchemy import Column, Integer, String
+from sqlalchemy.dialects.postgresql import JSONB
+
 from DB.database import Base
 
 class Doctor(Base):
